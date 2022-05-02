@@ -124,3 +124,8 @@ func (sds *sdshdr) set(s string) {
 func (sds *sdshdr) setrange() {
 
 }
+
+func (sds *sdshdr) tostring() string {
+	data := sds.data[:sds.len]
+	return string(data)
+}
