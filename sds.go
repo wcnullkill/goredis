@@ -2,8 +2,8 @@ package goredis
 
 import "bytes"
 
-// redis sdshdr
-type sdshdr struct {
+// redis Sdshdr
+type Sdshdr struct {
 	len  int
 	free int
 	data []byte
@@ -11,9 +11,9 @@ type sdshdr struct {
 
 // new
 // redis sdsnew
-func newsds(s string) *sdshdr {
+func Newsds(s string) *Sdshdr {
 	data := []byte(s)
-	return &sdshdr{
+	return &Sdshdr{
 		len:  len(data),
 		free: 0,
 		data: data,
@@ -22,23 +22,23 @@ func newsds(s string) *sdshdr {
 
 // 复制,底层数组copy
 // redis sdsdup
-func (sds *sdshdr) dup() *sdshdr {
+func (sds *Sdshdr) Dup() *Sdshdr {
 	data := make([]byte, len(sds.data))
 	copy(data, sds.data)
-	return &sdshdr{
+	return &Sdshdr{
 		len:  sds.len,
 		free: sds.free,
 		data: data,
 	}
 }
 
-func (sds *sdshdr) clear() {
+func (sds *Sdshdr) Clear() {
 
 }
 
 // 拼接一个字符串
 // redis sdscat
-func (sds *sdshdr) catString(s string) {
+func (sds *Sdshdr) CatString(s string) {
 	data := []byte(s)
 	sds.catSliceByte(data)
 }
@@ -47,7 +47,7 @@ func (sds *sdshdr) catString(s string) {
 // 为减少多次拼接造成多次内存分配，使用预留空间
 // 拼接后实际长度大于等于1M，则预留1M的空间
 // 拼接后实际长度<1M，则预留实际长度的空间
-func (sds *sdshdr) catSliceByte(data []byte) {
+func (sds *Sdshdr) catSliceByte(data []byte) {
 	if sds.free >= len(data) {
 		sds.data = append(sds.data, data...)
 	} else { // free不够
@@ -71,12 +71,12 @@ func (sds *sdshdr) catSliceByte(data []byte) {
 
 // 将dst的内容，增加到sds上
 // redis sdscatsds
-func (sds *sdshdr) catsds(dst *sdshdr) {
+func (sds *Sdshdr) Catsds(dst *Sdshdr) {
 	data := dst.data
 	sds.catSliceByte(data)
 }
 
-func (sds *sdshdr) compare(dst *sdshdr) bool {
+func (sds *Sdshdr) Compare(dst *Sdshdr) bool {
 	if sds.len != dst.len {
 		return false
 	}
@@ -86,7 +86,7 @@ func (sds *sdshdr) compare(dst *sdshdr) bool {
 
 // 去掉两端的s
 // redis sdstrim
-func (sds *sdshdr) trim(s string) {
+func (sds *Sdshdr) Trim(s string) {
 	newdata := bytes.Trim(sds.data, s)
 	var newlen int
 
@@ -105,7 +105,7 @@ func (sds *sdshdr) trim(s string) {
 // 覆盖
 // redis sdscpy
 
-func (sds *sdshdr) set(s string) {
+func (sds *Sdshdr) Set(s string) {
 	data := []byte(s)
 	var newlen int
 	if len(data) >= 1>>20 {
@@ -121,11 +121,11 @@ func (sds *sdshdr) set(s string) {
 }
 
 // redis sdsrange
-func (sds *sdshdr) setrange() {
+func (sds *Sdshdr) Setrange() {
 
 }
 
-func (sds *sdshdr) tostring() string {
+func (sds *Sdshdr) ToString() string {
 	data := sds.data[:sds.len]
 	return string(data)
 }

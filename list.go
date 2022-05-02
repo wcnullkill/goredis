@@ -4,7 +4,7 @@ type listNode struct {
 	prev *listNode
 	next *listNode
 	// string
-	value *sdshdr
+	value *Sdshdr
 }
 
 type list struct {
@@ -14,18 +14,18 @@ type list struct {
 }
 
 // redis listCreate
-func newlist() *list {
+func Newlist() *list {
 	return &list{}
 }
 
 // redis listDup
-func (l *list) dup() *list {
+func (l *list) Dup() *list {
 
 	return nil
 }
 
 // redis listFirst
-func (l *list) first() (*listNode, bool) {
+func (l *list) First() (*listNode, bool) {
 	if l.len > 0 {
 		return l.head, true
 	}
@@ -33,7 +33,7 @@ func (l *list) first() (*listNode, bool) {
 }
 
 // redis listLast
-func (l *list) last() (*listNode, bool) {
+func (l *list) Last() (*listNode, bool) {
 	if l.len > 0 {
 		return l.tail, true
 	}
@@ -41,7 +41,7 @@ func (l *list) last() (*listNode, bool) {
 }
 
 // redis listPrevNode
-func (l *list) prev(node *listNode) (*listNode, bool) {
+func (l *list) Prev(node *listNode) (*listNode, bool) {
 	if node != nil {
 		return node.prev, true
 	}
@@ -49,7 +49,7 @@ func (l *list) prev(node *listNode) (*listNode, bool) {
 }
 
 // redis listNextNode
-func (l *list) next(node *listNode) (*listNode, bool) {
+func (l *list) Next(node *listNode) (*listNode, bool) {
 	if node != nil {
 		return node.next, true
 	}
@@ -57,7 +57,7 @@ func (l *list) next(node *listNode) (*listNode, bool) {
 }
 
 // redis listAddNodeHead
-func (l *list) addHead(node *listNode) bool {
+func (l *list) AddHead(node *listNode) bool {
 	if node == nil {
 		return false
 	}
@@ -76,7 +76,7 @@ func (l *list) addHead(node *listNode) bool {
 }
 
 // redis listAddNodeTail
-func (l *list) addTail(node *listNode) bool {
+func (l *list) AddTail(node *listNode) bool {
 	if node == nil {
 		return false
 	}
@@ -96,13 +96,13 @@ func (l *list) addTail(node *listNode) bool {
 
 // 将node插入old之前
 // redis listInsertNode
-func (l *list) insertBefore(old *listNode, node *listNode) bool {
+func (l *list) InsertBefore(old *listNode, node *listNode) bool {
 	if old == nil || node == nil {
 		return false
 	}
 
 	// 如果old是head
-	if old.prev == nil {
+	if old.isHead() {
 		l.head = node
 		node.prev = nil
 	} else {
@@ -117,12 +117,12 @@ func (l *list) insertBefore(old *listNode, node *listNode) bool {
 
 // 将node插入old之后
 // redis listInsertNode
-func (l *list) insertAfter(old *listNode, node *listNode) bool {
+func (l *list) InsertAfter(old *listNode, node *listNode) bool {
 	if old == nil || node == nil {
 		return false
 	}
 	// 如果old是tail
-	if old.next == nil {
+	if old.isTail() {
 		l.tail = node
 		node.next = nil
 	} else {
@@ -137,21 +137,21 @@ func (l *list) insertAfter(old *listNode, node *listNode) bool {
 }
 
 // redis listSearchKey
-func (l *list) searchKey(val *sdshdr) (*listNode, bool) {
-	node, exist := l.first()
+func (l *list) SearchKey(val *Sdshdr) (*listNode, bool) {
+	node, exist := l.First()
 	for exist {
 		v := node.value
-		if v.compare(val) {
+		if v.Compare(val) {
 			return node, true
 		}
-		node, exist = l.next(node)
+		node, exist = l.Next(node)
 	}
 	return nil, false
 }
 
 // 查找第n个元素，从1开始
 // redis listIndex
-func (l *list) index(n int) (*listNode, bool) {
+func (l *list) Index(n int) (*listNode, bool) {
 	if n > l.len {
 		return nil, false
 	}
@@ -160,13 +160,13 @@ func (l *list) index(n int) (*listNode, bool) {
 		return node, true
 	}
 	for i := 2; i < n; i++ {
-		node, _ = l.next(node)
+		node, _ = l.Next(node)
 	}
 	return node, true
 }
 
 // redis listDel
-func (l *list) del(node *listNode) bool {
+func (l *list) Del(node *listNode) bool {
 	if node == nil {
 		return false
 	}
@@ -201,20 +201,27 @@ func (l *list) del(node *listNode) bool {
 
 // 将末尾元素弹出，插入表头
 // redis listRotate
-func (l *list) rotate() bool {
-	node, exist := l.last()
+func (l *list) Rotate() bool {
+	node, exist := l.Last()
 	if !exist {
 		return false
 	}
-	ok := l.del(node)
+	ok := l.Del(node)
 	if !ok {
 		return false
 	}
-	ok = l.addHead(node)
+	ok = l.AddHead(node)
 	return ok
 }
 
 func (node *listNode) free() {
 	node.next = nil
 	node.prev = nil
+}
+
+func (node *listNode) isHead() bool {
+	return node.prev == nil
+}
+func (node *listNode) isTail() bool {
+	return node.next == nil
 }
